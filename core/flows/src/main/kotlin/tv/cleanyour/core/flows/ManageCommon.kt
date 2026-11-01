@@ -34,6 +34,7 @@ import tv.cleanyour.core.spec.DockLayers
 import tv.cleanyour.core.spec.GlowChoice
 import tv.cleanyour.core.spec.HighlightChoice
 import tv.cleanyour.core.spec.LookExtras
+import tv.cleanyour.core.spec.PrayerZones
 import tv.cleanyour.core.spec.LookKeys
 import tv.cleanyour.core.spec.Movement
 import tv.cleanyour.core.spec.StyleId
@@ -256,6 +257,7 @@ class HomePrefs(private val store: DocumentStore) {
             "x.nogreeting" to "1".takeIf { e.hideGreeting }, "x.datebelow" to "1".takeIf { e.dateBelow },
             "x.brightdate" to "1".takeIf { e.brightDate }, "x.wifiwarn" to "1".takeIf { e.wifiWarnings },
             "x.tiles" to e.tiles.takeIf { it != TilesChoice.ART }?.id, "x.highlight" to e.highlight.takeIf { it != HighlightChoice.GLASS }?.id,
+            "x.prayer" to "1".takeIf { e.prayer }, "x.prayerzone" to e.prayerZone.takeIf { it != PrayerZones.DEFAULT },
         )
 
         fun decode(text: String): HomeChoice {
@@ -280,6 +282,8 @@ class HomePrefs(private val store: DocumentStore) {
                     wifiWarnings = map["x.wifiwarn"] == "1",
                     tiles = TilesChoice.entries.firstOrNull { it.id == map["x.tiles"] } ?: TilesChoice.ART,
                     highlight = HighlightChoice.entries.firstOrNull { it.id == map["x.highlight"] } ?: HighlightChoice.GLASS,
+                    prayer = map["x.prayer"] == "1",
+                    prayerZone = PrayerZones.of(map["x.prayerzone"])?.code ?: PrayerZones.DEFAULT,
                 ),
                 dockChosen = map["dockchosen"] != "false",
             )

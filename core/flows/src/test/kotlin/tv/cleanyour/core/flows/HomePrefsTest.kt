@@ -5,6 +5,8 @@ import tv.cleanyour.core.model.PackageName
 import tv.cleanyour.core.spec.BandChoice
 import tv.cleanyour.core.spec.ButtonsChoice
 import tv.cleanyour.core.spec.GlowChoice
+import tv.cleanyour.core.spec.LookExtras
+import tv.cleanyour.core.spec.PrayerZones
 import tv.cleanyour.testing.fixtures.MemoryDocumentStore
 import tv.cleanyour.testing.fixtures.Samples
 import kotlin.test.Test
@@ -68,6 +70,19 @@ class HomePrefsTest {
         prefs.save(id, bare)
         assertEquals(bare, prefs.load(id))
         assertEquals(HomePrefs.decode(HomePrefs.encode(choice)), choice)
+    }
+
+    @Test fun prayerTimesRoundTripAndOnlyWhenNotDefault() {
+        val base = HomeChoice(emptyList(), null)
+        assertTrue("x.prayer" !in HomePrefs.encode(base), "off writes no line")
+        val on = base.copy(extras = LookExtras(prayer = true, prayerZone = "TRG04"))
+        val text = HomePrefs.encode(on)
+        assertTrue("x.prayer=1\n" in text && "x.prayerzone=TRG04\n" in text, text)
+        assertEquals(on.extras, HomePrefs.decode(text).extras)
+        val kl = base.copy(extras = LookExtras(prayer = true))
+        assertTrue("x.prayerzone" !in HomePrefs.encode(kl), "the default zone writes no line")
+        assertEquals(PrayerZones.DEFAULT, HomePrefs.decode(HomePrefs.encode(kl)).extras.prayerZone)
+        assertEquals(PrayerZones.DEFAULT, HomePrefs.decode("x.prayer=1\nx.prayerzone=BAD00\n").extras.prayerZone)
     }
 
     @Test fun badValuesLoadAsNull() = runTest {

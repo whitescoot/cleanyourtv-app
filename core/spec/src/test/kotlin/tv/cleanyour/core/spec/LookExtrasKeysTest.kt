@@ -99,7 +99,7 @@ class LookExtrasKeysTest {
             val spec = LookKeys.spec(style).copy(buttons = buttons, greenWifi = wifi)
             for (extras in LookExtrasInputs.all()) {
                 val d = build(spec, extras)
-                for (k in d.unknown.keys) assertTrue(k in ConfigCodecImpl.CARRIED_27 || k in ConfigCodecImpl.CARRIED_30, "$extras writes $k")
+                for (k in d.unknown.keys) assertTrue(k in ConfigCodecImpl.CARRIED_27 || k in ConfigCodecImpl.CARRIED_30 || k in ConfigCodecImpl.CARRIED_PRAYER, "$extras writes $k")
                 val ok = assertIs<DecodeResult.Ok>(LauncherConfigCodec.decode(LauncherConfigCodec.encode(d)))
                 assertEquals(emptyList(), ok.warnings, "$style $buttons $wifi $extras")
                 assertEquals(d, ok.doc)

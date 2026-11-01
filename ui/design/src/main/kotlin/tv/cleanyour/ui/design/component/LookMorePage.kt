@@ -152,6 +152,7 @@ internal fun ColumnScope.LookMorePage(state: LookEditorState, onEdit: (LookEdit)
             )
         }
     }
+    LookPrayerRows(x, onEdit)
     if (r.buttons.visible) {
         LookSublabel(stringResource(R.string.cyt_look_buttons))
         LookRadioList(

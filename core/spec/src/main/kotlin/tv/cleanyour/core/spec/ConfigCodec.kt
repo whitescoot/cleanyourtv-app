@@ -94,6 +94,12 @@ internal object ConfigCodecImpl {
         "glass_style",
     )
 
+    // The key of the prayer-times home screen (the Islamic fork of the launcher, Config.java
+    // prayerZone, read from config.json): the e-Solat zone code (PrayerZones) whose times show under
+    // the clock; empty or missing hides the row. Carried in `unknown` like CARRIED_30. The upstream
+    // launcher the submodule pins does not read it, so a TV on that one ignores it.
+    val CARRIED_PRAYER: Set<String> = setOf("prayer_zone")
+
     // The rest of what launchers 2.7 (3e34f40) and 3.0 (b06ab21) both read from config.json
     // (Config.load) that no look sets and LauncherConfigDoc has no field for: carried as is with no
     // warning, since the TV does read them; the phone neither writes nor previews them. Each is read
@@ -347,7 +353,7 @@ internal object ConfigCodecImpl {
         for ((k, v) in o) {
             if (k in MODELLED) continue
             unknown[k] = v.toJsonElement()
-            if (k !in CARRIED_27 && k !in CARRIED_30 && k !in CARRIED_READ) w += "unknown key $k; the launcher ignores it (carried as is)"
+            if (k !in CARRIED_27 && k !in CARRIED_30 && k !in CARRIED_PRAYER && k !in CARRIED_READ) w += "unknown key $k; the launcher ignores it (carried as is)"
         }
         prerequisites30(o, dockRow ?: BUILT_IN.dockRow, appLibrary ?: BUILT_IN.appLibrary, w)
         val doc = LauncherConfigDoc(
