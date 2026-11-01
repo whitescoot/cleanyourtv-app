@@ -43,6 +43,7 @@ internal class ExtraRows(state: LookEditorState) {
     val wifiWarnOn: Boolean = wifiWarnEnabled && acting.wifiWarnings
     val tiles: Boolean = on
     val highlight: Boolean = on
+    val prayer: Boolean = on
 
     // The whole set with one change, as LookEdit.SetExtras sends it.
     fun edit(onEdit: (LookEdit) -> Unit, change: LookExtras.() -> LookExtras) = onEdit(LookEdit.SetExtras(extras.change()))
@@ -69,6 +70,7 @@ internal fun extraWords(state: LookEditorState): List<String> {
     if (x.tiles && e.tiles == TilesChoice.ICONS) out += stringResource(R.string.cyt_look_word_icon_tiles)
     if (x.highlight && e.highlight == HighlightChoice.RIM) out += stringResource(R.string.cyt_look_word_rim)
     if (x.highlight && e.highlight == HighlightChoice.HALO) out += stringResource(R.string.cyt_look_word_halo)
+    if (x.prayer && e.prayer) out += stringResource(R.string.cyt_look_word_prayer)
     return out
 }
 

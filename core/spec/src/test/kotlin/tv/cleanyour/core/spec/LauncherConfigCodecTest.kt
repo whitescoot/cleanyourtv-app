@@ -199,14 +199,14 @@ class LauncherConfigCodecTest {
         val v27 = keys("v27")
         val v30 = keys("v30")
         assertTrue(v27.size > 70 && v30.size > 95, "the readers were found: ${v27.size} and ${v30.size} keys")
-        val known = ConfigCodecImpl.MODELLED + ConfigCodecImpl.CARRIED_27 + ConfigCodecImpl.CARRIED_30 + ConfigCodecImpl.CARRIED_READ
+        val known = ConfigCodecImpl.MODELLED + ConfigCodecImpl.CARRIED_27 + ConfigCodecImpl.CARRIED_30 + ConfigCodecImpl.CARRIED_PRAYER + ConfigCodecImpl.CARRIED_READ
         assertEquals(emptySet(), v27 - known, "keys launcher 2.7 reads that the codec would call ignored")
         assertEquals(emptySet(), v30 - known, "keys launcher 3.0 reads that the codec would call ignored")
-        assertEquals(emptySet(), known - v27 - v30, "known keys no launcher reads")
+        assertEquals(emptySet(), known - ConfigCodecImpl.CARRIED_PRAYER - v27 - v30, "known keys no launcher reads")
         assertEquals(emptySet(), ConfigCodecImpl.CARRIED_READ - (v27 intersect v30), "CARRIED_READ keys not read by both")
         assertEquals(emptySet(), ConfigCodecImpl.CARRIED_30 intersect v27, "CARRIED_30 keys 2.7 reads too")
         assertEquals(emptySet(), v27 - v30, "keys 2.7 reads that 3.0 dropped")
-        val sets = listOf(ConfigCodecImpl.MODELLED, ConfigCodecImpl.CARRIED_27, ConfigCodecImpl.CARRIED_30, ConfigCodecImpl.CARRIED_READ)
+        val sets = listOf(ConfigCodecImpl.MODELLED, ConfigCodecImpl.CARRIED_27, ConfigCodecImpl.CARRIED_30, ConfigCodecImpl.CARRIED_PRAYER, ConfigCodecImpl.CARRIED_READ)
         assertEquals(sets.sumOf { it.size }, known.size, "the sets do not overlap")
         // A file with every read key, each as a boolean, never says one is ignored.
         val all = LauncherConfigDoc(unknown = (v30 - ConfigCodecImpl.MODELLED).associateWith { JsonPrimitive(true) })

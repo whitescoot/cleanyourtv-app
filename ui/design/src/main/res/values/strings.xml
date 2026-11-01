@@ -342,6 +342,11 @@
     <string name="cyt_look_word_icon_tiles">Icon tiles</string>
     <string name="cyt_look_word_rim">Rim highlight</string>
     <string name="cyt_look_word_halo">Halo highlight</string>
+    <string name="cyt_look_word_prayer">Prayer times</string>
+    <string name="cyt_look_more_prayer">Prayer times</string>
+    <string name="cyt_look_prayer">Show prayer times</string>
+    <string name="cyt_look_prayer_desc">Today\'s five prayer times and the time to the next one, under the clock. Needs the Islamic home screen on the TV. The TV fetches the year once from e-solat.gov.my (JAKIM).</string>
+    <string name="cyt_look_prayer_zone">Prayer zone</string>
     <string name="cyt_look_tiles_note_icons">Icons show as a letter on a card here. On the TV each app shows its own icon.</string>
 
     <!-- look2 Advanced -->

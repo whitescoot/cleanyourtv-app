@@ -19,13 +19,15 @@ data class LookExtras(
     val wifiWarnings: Boolean = false,  // wifi_status_warnings
     val tiles: TilesChoice = TilesChoice.ART,              // uniform_tiles (T2)
     val highlight: HighlightChoice = HighlightChoice.GLASS, // glass_style (T2)
+    val prayer: Boolean = false,                            // on: writes prayer_zone (JAKIM prayer times under the clock)
+    val prayerZone: String = PrayerZones.DEFAULT,           // prayer_zone; only written while `prayer` is on
 ) { companion object { val DEFAULT = LookExtras() } }
 
 object LookExtrasKeys {
     // The keys LookKeys.build may write for the extras, in LookExtras order.
     val KEYS: List<String> = listOf(
         "single_row", "dock_band_all", "dock_band", "show_greeting", "date_below_clock", "header_white",
-        "wifi_status_warnings", "uniform_tiles", "glass_style",
+        "wifi_status_warnings", "uniform_tiles", "glass_style", "prayer_zone",
     )
 
     // HighlightChoice for the launcher's glass_style as LauncherKeys.keys30 reads it.
@@ -57,6 +59,8 @@ object LookExtrasKeys {
             wifiWarnings = c.wifiStatusWarnings && k.wifiStatusColor && !k.topMenu,
             tiles = if (c.uniformTiles) TilesChoice.ICONS else TilesChoice.ART,
             highlight = highlight(c.glassStyle),
+            prayer = PrayerZones.isValid(LauncherKeys.string(doc, "prayer_zone", "")),
+            prayerZone = PrayerZones.of(LauncherKeys.string(doc, "prayer_zone", ""))?.code ?: PrayerZones.DEFAULT,
         )
     }
 
@@ -85,5 +89,8 @@ object LookExtrasKeys {
         if (extras.wifiWarnings) put("wifi_status_warnings", JsonPrimitive(true))
         if (extras.tiles == TilesChoice.ICONS) put("uniform_tiles", JsonPrimitive(true))
         if (extras.highlight != HighlightChoice.GLASS) put("glass_style", JsonPrimitive(extras.highlight.id))
+        // Prayer times: the launcher shows the row (and goes online for e-Solat) only while prayer_zone
+        // holds a zone, so "on" writes the zone and "off" writes nothing.
+        if (extras.prayer && PrayerZones.isValid(extras.prayerZone)) put("prayer_zone", JsonPrimitive(PrayerZones.of(extras.prayerZone)!!.code))
     }
 }

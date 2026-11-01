@@ -358,7 +358,7 @@ internal object LookRules {
         val d = LookExtras.DEFAULT
         return listOf(e.oneRow != d.oneRow, e.bandAll != d.bandAll, e.noBand != d.noBand, e.hideGreeting != d.hideGreeting,
             e.dateBelow != d.dateBelow, e.brightDate != d.brightDate, e.wifiWarnings != d.wifiWarnings, e.tiles != d.tiles,
-            e.highlight != d.highlight).count { it }
+            e.highlight != d.highlight, e.prayer != d.prayer).count { it }
     }
 
     // The resolved spec: what each row really gives (a disabled row its style's own).
