@@ -1,0 +1,36 @@
+# Builds the phone app's debug APK (full flavour) and uploads it, so it can be downloaded from the
+# run page and installed on a phone. Runs on a push to the build-apk branch, or by hand from the
+# Actions tab. Debug-signed: for your own phone, not for release.
+name: build-debug-apk
+
+on:
+  push:
+    branches: [build-apk]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
+      - name: Build the debug APK
+        run: ./gradlew :app:assembleFullDebug --console=plain
+      - name: Show what was built
+        run: ls -l app/build/outputs/apk/*/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cleanyourtv-app-debug-apk
+          path: app/build/outputs/apk/*/debug/*.apk
+          if-no-files-found: error
