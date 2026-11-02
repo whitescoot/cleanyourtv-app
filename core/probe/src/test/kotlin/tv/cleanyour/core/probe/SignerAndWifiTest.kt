@@ -20,11 +20,14 @@ class SignerAndWifiTest {
     private fun p(s: String) = PackageName(s)
     private val prober = AdbProber(ProbeFixtures.clock())
     private val bundled = File(Fixtures.repoRoot, "android/platform/src/main/assets/bundled")
-    // SHA-256 of the launcher key K1's certificate, as PinnedLauncher.SIGNER_SHA256 holds it.
+    // SHA-256 of the official launcher key K1's certificate: the curtain is still signed with it.
     private val k1 = Sha256("576418154bec6505bfc709ccaa6ae85b6e09d98eb89f4a25147ca1b4b0505132")
+    // The bundled launcher is the whitescoot/cleanyourtv build (3.2, prayer-times row), signed with that
+    // workflow's debug key: PinnedLauncher.SIGNER_SHA256 (core:trust is not a dependency of this module).
+    private val launcherKey = Sha256("20bb3ac36c94b8061dabd2ab48031f748130c0026e21b92c39be351e4abaf453")
 
     @Test fun signerOfTheBundledApks() {
-        assertEquals(k1, ApkSigners.signerSha256(File(bundled, "cleanyourtv-launcher.apk").readBytes()))
+        assertEquals(launcherKey, ApkSigners.signerSha256(File(bundled, "cleanyourtv-launcher.apk").readBytes()))
         assertEquals(k1, ApkSigners.signerSha256(File(bundled, "cleanyourtv-curtain.apk").readBytes()))
     }
 
@@ -35,17 +38,21 @@ class SignerAndWifiTest {
     @Test fun onlyACertificateTheTvVerifiedCounts() {
         val apk = File(bundled, "cleanyourtv-launcher.apk").readBytes()
         val cert = ApkSigners.certificate(apk)!!
-        assertEquals(k1, ApkSigners.signerSha256(withPairs(apk) { it == V2 }), "v2 alone is what Android 8 verifies")
+        assertEquals(launcherKey, ApkSigners.signerSha256(withPairs(apk) { it == V2 }), "v2 alone is what Android 8 verifies")
         assertNull(ApkSigners.signerSha256(withPairs(apk) { it == V3 }), "a v3 block alone (K1 planted for Android 8)")
         assertNull(ApkSigners.signerSha256(withPairs(apk) { false }), "no scheme block")
-        assertEquals(k1, ApkSigners.signerSha256(withPairs(apk) { true }), "the rebuilt block reads as before")
+        assertEquals(launcherKey, ApkSigners.signerSha256(withPairs(apk) { true }), "the rebuilt block reads as before")
         // The certificate appears once per scheme; another certificate in either one means v2 and v3
         // disagree (an APK signed v2 with another key, K1 planted in v3), so the signer is unknown.
+        // The fork build is signed with v2 only, so the certificate appears once (the official K1 build had v2 and v3).
         val at = occurrences(apk, cert)
-        assertEquals(2, at.size)
+        assertTrue(at.size in 1..2, "certificate occurrences: ${at.size}")
         for (i in at) {
             val other = apk.copyOf().also { it[i + cert.size / 2] = (it[i + cert.size / 2].toInt() xor 0x55).toByte() }
-            assertNull(ApkSigners.signerSha256(other), "certificate at $i changed")
+            // v2 and v3 both present: they now disagree, so unknown. v2 only: there is nothing to
+            // disagree with, so the changed certificate is read as itself and is never the launcher's.
+            if (at.size == 2) assertNull(ApkSigners.signerSha256(other), "certificate at $i changed")
+            else assertTrue(ApkSigners.signerSha256(other) != launcherKey, "certificate at $i changed")
         }
     }
 
@@ -126,7 +133,7 @@ class SignerAndWifiTest {
         val apk = File(bundled, "cleanyourtv-launcher.apk").readBytes()
         val s = session(installed = true, apk = apk)
         val snap = prober.snapshot(s, SnapshotReason.BASELINE)
-        assertEquals(k1, snap.packages.getValue(p("com.gathin.tvhome")).signer)
+        assertEquals(launcherKey, snap.packages.getValue(p("com.gathin.tvhome")).signer)
         assertTrue(snap.packages.filterKeys { it != p("com.gathin.tvhome") }.values.all { it.signer == null })
         // Copy (size checked first), pull, delete; the copy never stays on the TV.
         val copy = copies(s).single()
@@ -144,13 +151,13 @@ class SignerAndWifiTest {
     // An installed APK that hashes to a pinned one has that pin's signer: nothing is copied.
     @Test fun aPinnedApkIsNotCopied() = runBlocking<Unit> {
         val pinned = Sha256("ab".repeat(32))
-        val withPins = AdbProber(ProbeFixtures.clock(), known = mapOf(pinned to k1))
+        val withPins = AdbProber(ProbeFixtures.clock(), known = mapOf(pinned to launcherKey))
         val s = session(installed = true, apk = null, installedSha = pinned)
-        assertEquals(k1, withPins.snapshot(s, SnapshotReason.BASELINE).packages.getValue(p("com.gathin.tvhome")).signer)
+        assertEquals(launcherKey, withPins.snapshot(s, SnapshotReason.BASELINE).packages.getValue(p("com.gathin.tvhome")).signer)
         assertTrue(copies(s).isEmpty())
         // Another APK: copied and read as before.
         val other = session(installed = true, apk = File(bundled, "cleanyourtv-launcher.apk").readBytes(), installedSha = Sha256("cd".repeat(32)))
-        assertEquals(k1, withPins.snapshot(other, SnapshotReason.BASELINE).packages.getValue(p("com.gathin.tvhome")).signer)
+        assertEquals(launcherKey, withPins.snapshot(other, SnapshotReason.BASELINE).packages.getValue(p("com.gathin.tvhome")).signer)
         assertEquals(1, copies(other).size)
     }
 

@@ -26,16 +26,24 @@ object TrustRoots {
 // scripts/build-launcher-on-forge.sh (docs/history/reviews/LAUNCHER-300-build-output.txt). The
 // verifyLauncherPin task (part of :core:trust check and of :android:platform preBuild) fails the
 // build when the asset differs.
+//
+// LOCAL FORK BUILD: the bundled APK is not upstream's. It is launcher 3.2 (versionCode 11) built by the
+// "Build launcher APK" workflow of github.com/whitescoot/cleanyourtv, which adds the JAKIM prayer-times
+// row (config.json prayer_zone), and it is signed with that workflow's DEBUG key, so SIGNER_SHA256 is
+// that key's certificate and changes with every rebuild on a new runner. UPSTREAM_COMMIT still names the
+// upstream commit the submodule is checked out at (the pinned-checkout test compares them); it is not
+// the commit this APK was built from. A TV that has the launcher signed by another key must have it
+// uninstalled before this one installs: Android refuses an update signed by a different key.
 object PinnedLauncher {
     const val ASSET_NAME = "cleanyourtv-launcher.apk"
     const val UPSTREAM_COMMIT = "b06ab21105c49900cb1ed76b24414dba1e21d0db"
     const val PACKAGE = "com.gathin.tvhome"
-    const val VERSION_CODE = 9L
-    const val VERSION_NAME = "3.0"
-    const val SIZE = 540_541L
-    const val SHA256 = "9fcc21c0eb81548c2432b3bf89c1d9c6b6ad17dcf7f7fc2e8d90d7ccbea7d60e"
+    const val VERSION_CODE = 11L
+    const val VERSION_NAME = "3.2"
+    const val SIZE = 590_025L
+    const val SHA256 = "20cad9993d4d3a39e825a751b74d5424935ccda844dced10b4a478b0efae500f"
     // SHA-256 of the signing certificate (DER), "O=cleanyourtv, CN=Clean Your TV launcher", v2 and v3.
-    const val SIGNER_SHA256 = "576418154bec6505bfc709ccaa6ae85b6e09d98eb89f4a25147ca1b4b0505132"
+    const val SIGNER_SHA256 = "20bb3ac36c94b8061dabd2ab48031f748130c0026e21b92c39be351e4abaf453"
 }
 
 // The TV curtain bundled in the phone app (RFC-CURTAIN-1): module :tv:curtain of this repo, built
@@ -51,7 +59,9 @@ object PinnedCurtain {
     const val VERSION_NAME = "0.1"
     const val SIZE = 65_955L
     const val SHA256 = "eb21e112c97121a3ed7f4db1c7fbf2169bc172a14bb3f8ca781079de4651662e"
-    const val SIGNER_SHA256 = PinnedLauncher.SIGNER_SHA256
+    // The curtain keeps the official launcher key K1 (it was signed with it). The bundled launcher is a
+    // fork build with another key, so the two no longer share one signer.
+    const val SIGNER_SHA256 = "576418154bec6505bfc709ccaa6ae85b6e09d98eb89f4a25147ca1b4b0505132"
 }
 
 // LauncherPin over the BlobStore's bundled asset. bundled() refuses an asset whose bytes are not the
