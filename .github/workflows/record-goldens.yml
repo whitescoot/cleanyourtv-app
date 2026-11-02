@@ -1,0 +1,36 @@
+# One-off: re-records the Look > More options screenshot goldens after the Prayer times section was added,
+# and commits the changed PNGs back to this branch. Runs on a push to record-goldens only.
+name: record-goldens
+
+on:
+  push:
+    branches: [record-goldens]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          submodules: true
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
+      - name: Record the launcher feature's goldens
+        run: ./gradlew :feature:launcher:recordRoborazziDebug --console=plain
+      - name: Commit the three look_more_30 sets back
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add feature/launcher/src/test/screenshots/look_more_30*.png
+          git status --short
+          git diff --cached --quiet && { echo "no golden changed"; exit 0; }
+          git commit -m "Re-record Look more-options goldens for the Prayer times section"
+          git push origin HEAD:record-goldens
